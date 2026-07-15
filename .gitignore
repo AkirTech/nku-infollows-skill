@@ -241,10 +241,4 @@ desktop.ini
 .venv/
 venv/
 
-# Backend: nested git repo metadata (don't track in parent)
-src/backend/wechat-download-api/.git/
-src/backend/wechat-download-api/.git.disabled/
-
-# Backend: sensitive data
-src/backend/wechat-download-api/data/
-src/backend/wechat-download-api/.env
+# Backend is a git submodule — its internals are managed independently

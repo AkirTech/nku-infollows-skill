@@ -1,0 +1,3 @@
+[submodule "src/backend/wechat-download-api"]
+	path = src/backend/wechat-download-api
+	url = git@github.com:tmwgsicp/wechat-download-api.git
