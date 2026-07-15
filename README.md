@@ -4,96 +4,183 @@ A Claude Code skill for intelligent WeChat subscription news tracking and AI-pow
 
 ## Overview
 
-This skill helps you keep up with the most valuable news from your WeChat subscriptions. It fetches articles via the [wechat-download-api](https://github.com/nku/infollows) backend, extracts key information, generates keywords using AI comprehension, and presents personalized recommendations in a clean HTML report.
+This skill helps you keep up with the most valuable news from your WeChat subscriptions. It fetches articles via the [wechat-download-api](https://github.com/tmwgsicp/wechat-download-api) backend, generates keywords using AI comprehension, and presents personalized recommendations in a clean, interactive HTML report.
 
-The core of this skill is not just fetching articles — it emphasizes **"Recommend"** more: sorting, filtering, and surfacing only the most relevant items based on content understanding.
+The core philosophy: **not just fetching articles, but recommending** — sorting, filtering, and surfacing only the most valuable content.
 
 ## Architecture
 
-- **Backend**: `wechat-download-api` (Python 3.8+ with FastAPI) — handles WeChat authentication, article fetching, and data storage
-- **Database**: SQLite (`src/backend/wechat-download-api/data/rss.db`) with `articles` and `subscriptions` tables
-- **Skill layer**: Claude Code orchestrates the workflow — querying the backend, analyzing articles, generating recommendations
+```
+┌──────────────────────────────────────────────────────┐
+│  Claude Code                                         │
+│  /nku-infollows  ────→  src/main/skill.md            │
+│                              │                       │
+│    MCP tools (preferred) ────┤                       │
+│    or REST API (fallback) ───┤                       │
+│                              ▼                       │
+│    Claude generates keywords + recommendations       │
+│                              │                       │
+│    generate_html.py ────→ recommendations.html       │
+│                              │                       │
+│    Open in browser ←─────────┘                       │
+└──────────────────────────────────────────────────────┘
+         │
+         ▼
+┌──────────────────────────────────────────────────────┐
+│  wechat-download-api (git submodule)                 │
+│  FastAPI + SQLite + MCP server                       │
+│  http://localhost:5000                               │
+└──────────────────────────────────────────────────────┘
+```
+
+## Project Structure
+
+```
+├── .claude/skills/nku-infollows/   # Skill registration (Claude Code discovers this)
+│   └── skill.md                    #   → points to src/main/skill.md
+├── .gitignore
+├── .gitmodules                     # Backend submodule config
+├── CLAUDE.md                       # Guidance for Claude Code
+├── LICENSE
+├── README.md
+└── src/
+    ├── main/
+    │   ├── skill.md                # Full skill workflow definition
+    │   ├── scripts/                # Automation scripts
+    │   │   ├── config.py           #   Shared configuration
+    │   │   ├── check_backend.py    #   Health check + auto-start
+    │   │   ├── trigger_poll.py     #   Trigger article poll
+    │   │   ├── generate_html.py    #   Generate recommendation HTML
+    │   │   ├── cleanup.py          #   Clean up generated files
+    │   │   ├── orchestrator.py     #   Single-mode workflow runner
+    │   │   └── temp/               #   Generated output (gitignored)
+    │   └── reference/              #   Reserved for skill references
+    ├── refs/
+    │   └── openapi.json            # Backend API OpenAPI 3.1 spec
+    └── backend/
+        └── wechat-download-api/    # Backend server (git submodule)
+            ├── app.py              #   FastAPI entry point
+            ├── start.bat           #   Windows startup script
+            ├── start.sh            #   Linux/macOS startup script
+            ├── routes/             #   API route handlers
+            ├── utils/              #   Core utilities
+            ├── mcp_server/         #   MCP server (6 tools)
+            ├── static/             #   Frontend HTML pages
+            └── data/               #   SQLite DB + credentials
+```
 
 ## Modes
 
 ### Single Mode
 
-Runs once to fetch and recommend articles:
+Run once to fetch and recommend articles. Trigger with `/nku-infollows` in Claude Code, or:
 
-1. Verify the backend server is running
-2. Check that subscriptions are configured
-3. Fetch latest articles from the backend (respects rate limits)
-4. Export articles as JSON with AI-generated keywords:
-   ```json
-   {
-     "id": 5,
-     "title": "南开大学发布暑假放假通知！",
-     "link": "https://mp.weixin.qq.com/s/XxwJo1ueMSvOaTXOs-DHdg",
-     "author": "南开大学",
-     "keywords": "假期 | 重要通知"
-   }
-   ```
-5. Generate a standalone HTML page to display the JSON data
-6. Sort, filter, and identify the most valuable articles
-7. Render recommendations in HTML and open in the default browser
+```bash
+python src/main/scripts/orchestrator.py
+```
 
 ### Loop Mode
 
-Triggers the Single mode process every 1 hour on a recurring basis. Previous recommendation data is cleared between runs to save storage.
+Run automatically every hour:
+
+```bash
+/loop 1h /nku-infollows
+```
 
 ### Clear
 
-Cleans up generated JSON and HTML files.
+Clean up generated files:
 
-## Project Structure
-
+```bash
+python src/main/scripts/cleanup.py
 ```
-├── src/
-│   ├── main/                     # Skill entry point
-│   └── backend/
-│       └── wechat-download-api/  # Backend server (git submodule)
-│           ├── routes/           # API route handlers
-│           ├── utils/            # Core utilities (fetcher, auth, RSS, etc.)
-│           ├── mcp_server/       # MCP server integration
-│           ├── static/           # Frontend HTML pages
-│           └── data/             # SQLite database and credentials
-├── refs/
-│   └── openapi.json             # Backend API reference
-└── CLAUDE.md                    # Skill instructions for Claude Code
-```
-
-## Prerequisites
-
-- Python 3.8+
-- A WeChat account (for authentication)
-- Claude Code with the skill installed
 
 ## Getting Started
 
-1. Set up the backend:
-   ```bash
-   cd src/backend/wechat-download-api
-   pip install -r requirements.txt
-   cp env.example .env    # Configure your environment
-   ```
+### 1. Clone with submodule
 
-2. Start the backend server:
-   ```bash
-   python app.py
-   ```
+```bash
+git clone --recurse-submodules <this-repo>
+cd nku-infollows-skill
+```
 
-3. Log in with your WeChat account and add subscriptions via the admin dashboard.
+### 2. Start the backend
 
-4. Invoke the skill in Claude Code:
+The skill auto-starts the backend, but you can also do it manually:
+
+**Windows:**
+```bash
+src\backend\wechat-download-api\start.bat
+```
+
+**Linux/macOS:**
+```bash
+bash src/backend/wechat-download-api/start.sh
+```
+
+### 3. Log in to WeChat
+
+Open `http://localhost:5000/login.html` and scan the QR code with your WeChat app.
+
+### 4. Add subscriptions
+
+Go to `http://localhost:5000/rss.html` to search and subscribe to WeChat official accounts.
+
+### 5. Run the skill
+
+In Claude Code:
+```
+/nku-infollows
+```
+
+Or manually:
+```bash
+# Auto-start backend + fetch articles + generate recommendations
+python src/main/scripts/orchestrator.py
+
+# Step by step
+python src/main/scripts/check_backend.py --start
+python src/main/scripts/trigger_poll.py
+python src/main/scripts/generate_html.py
+```
+
+## MCP Support (Optional)
+
+Enable the backend MCP server for direct tool access from Claude:
+
+1. In the backend `.env`, set:
    ```
-   /nku-infollows
+   ENABLE_MCP=1
+   MCP_TOKEN=your-secret-token
    ```
+2. Restart the backend
+3. Claude Code can now call `list_subscriptions`, `get_recent_articles`, `read_article`, and other MCP tools directly — no HTTP scripts needed for data fetching
+
+The skill automatically prefers MCP when available, falling back to REST API calls otherwise.
+
+## Article Data Schema
+
+```json
+{
+  "id": 5,
+  "title": "南开大学发布暑假放假通知！",
+  "link": "https://mp.weixin.qq.com/s/XxwJo1ueMSvOaTXOs-DHdg",
+  "author": "南开大学",
+  "keywords": "假期 | 重要通知 | 教务",
+  "publish_time": 1720963200,
+  "recommended": true
+}
+```
+
+Keywords are AI-generated based on title and author comprehension. Recommendations are based on content value, recency, and user preferences.
 
 ## References
 
-- Backend API documentation: `refs/openapi.json`
+- Backend API spec: `src/refs/openapi.json`
 - Backend README: `src/backend/wechat-download-api/README.md`
+- Backend repository: [wechat-download-api](https://github.com/tmwgsicp/wechat-download-api)
 
 ## License
 
-See `src/backend/wechat-download-api/LICENSE` for backend license information.
+MIT. See `LICENSE` for details.
+The backend (`src/backend/wechat-download-api/`) is licensed under AGPL-3.0-only.

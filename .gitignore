@@ -234,11 +234,10 @@ src/main/scripts/temp/
 Thumbs.db
 desktop.ini
 
-# Claude Code (auto-generated)
-.claude/
+# Claude Code (runtime artifacts only — skills/ is tracked for registration)
+.claude/worktrees/
+.claude/settings.local.json
 
 # Python virtualenv
 .venv/
 venv/
-
-# Backend is a git submodule — its internals are managed independently

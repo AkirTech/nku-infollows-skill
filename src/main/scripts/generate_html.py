@@ -38,13 +38,13 @@ CST = timezone(timedelta(hours=8))
 
 # Keyword tag color palette (light-theme pairs; dark theme adjusts via CSS opacity)
 KEYWORD_COLORS = [
+    ("#f3e5f5", "#6A2C70"),  # Nankai purple
     ("#e8f5e9", "#2e7d32"),  # green
     ("#e3f2fd", "#1565c0"),  # blue
-    ("#fff3e0", "#e65100"),  # orange
+    ("#fef7e8", "#B8860B"),  # Nankai gold
     ("#fce4ec", "#c62828"),  # red/pink
-    ("#f3e5f5", "#6a1b9a"),  # purple
     ("#e0f7fa", "#00695c"),  # teal
-    ("#fff8e1", "#f9a825"),  # amber
+    ("#fff3e0", "#e65100"),  # orange
     ("#f1f8e9", "#558b2f"),  # light green
 ]
 
@@ -66,7 +66,7 @@ def sanitize_text(s: str) -> str:
 
 def sanitize_articles(articles: list[dict]) -> list[dict]:
     """Sanitize text fields in all articles to prevent JSON issues."""
-    text_fields = ("title", "author", "keywords", "digest", "nickname")
+    text_fields = ("title", "author", "keywords", "digest", "nickname", "cover")
     for a in articles:
         for field in text_fields:
             if field in a and isinstance(a[field], str):
@@ -79,105 +79,105 @@ def sanitize_articles(articles: list[dict]) -> list[dict]:
 CSS = r"""
 /* === Theme Variables === */
 :root {
-    --bg-primary: #f5f7fa;
+    --bg-primary: #f7f4f9;
     --bg-secondary: #ffffff;
-    --bg-tertiary: #f8f9fa;
-    --bg-recommended: #fffde7;
-    --bg-hover: #f1f3f4;
-    --text-primary: #202124;
-    --text-secondary: #5f6368;
-    --text-muted: #9aa0a6;
-    --link-color: #1a73e8;
-    --border: #e8eaed;
-    --border-light: #dadce0;
-    --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
-    --shadow-md: 0 2px 8px rgba(0,0,0,0.10);
-    --shadow-lg: 0 2px 8px rgba(0,0,0,0.12);
-    --header-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --bg-tertiary: #f5f0f7;
+    --bg-recommended: #fefcf3;
+    --bg-hover: #efe8f2;
+    --text-primary: #1a1420;
+    --text-secondary: #5c5060;
+    --text-muted: #8e8094;
+    --link-color: #6A2C70;
+    --border: #e4dce8;
+    --border-light: #d5cadb;
+    --shadow-sm: 0 1px 3px rgba(106,44,112,0.06);
+    --shadow-md: 0 2px 8px rgba(106,44,112,0.10);
+    --shadow-lg: 0 2px 12px rgba(106,44,112,0.12);
+    --header-gradient: linear-gradient(135deg, #6A2C70 0%, #8B3A7E 50%, #A052A0 100%);
     --header-text: #ffffff;
     --header-stat-bg: rgba(255,255,255,0.18);
-    --accent: #667eea;
-    --accent-hover: #5a6fd6;
-    --accent-light: rgba(102,126,234,0.12);
-    --star-color: #f9a825;
-    --star-inactive: #dadce0;
-    --badge-bg: #e8eaed;
-    --badge-text: #5f6368;
-    --rec-border: #f9a825;
-    --toolbar-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    --accent: #6A2C70;
+    --accent-hover: #5B1F60;
+    --accent-light: rgba(106,44,112,0.10);
+    --star-color: #D4A843;
+    --star-inactive: #dad0e0;
+    --badge-bg: #ede4f0;
+    --badge-text: #6A2C70;
+    --rec-border: #C4A23D;
+    --toolbar-shadow: 0 1px 3px rgba(106,44,112,0.06);
     --card-border-left: transparent;
-    --input-focus-ring: rgba(102,126,234,0.12);
-    --accordion-border: #e8eaed;
-    --empty-color: #9aa0a6;
+    --input-focus-ring: rgba(106,44,112,0.12);
+    --accordion-border: #e4dce8;
+    --empty-color: #8e8094;
 }
 
 /* === Dark Theme === */
 [data-theme="dark"] {
-    --bg-primary: #1a1a2e;
-    --bg-secondary: #252540;
-    --bg-tertiary: #2a2a48;
-    --bg-recommended: #2d2a18;
-    --bg-hover: #303055;
-    --text-primary: #e8eaed;
-    --text-secondary: #9aa0a6;
-    --text-muted: #6e7380;
-    --link-color: #8ab4f8;
-    --border: #3c3c5c;
-    --border-light: #4a4a6a;
+    --bg-primary: #1a1220;
+    --bg-secondary: #221830;
+    --bg-tertiary: #281c36;
+    --bg-recommended: #2a2218;
+    --bg-hover: #2e2040;
+    --text-primary: #e8e0ec;
+    --text-secondary: #a890b0;
+    --text-muted: #7a6880;
+    --link-color: #c090d0;
+    --border: #3a2848;
+    --border-light: #483858;
     --shadow-sm: 0 1px 3px rgba(0,0,0,0.25);
     --shadow-md: 0 2px 8px rgba(0,0,0,0.35);
     --shadow-lg: 0 2px 12px rgba(0,0,0,0.40);
-    --header-gradient: linear-gradient(135deg, #4a54b8 0%, #5c3a7a 100%);
-    --header-text: #e8eaed;
+    --header-gradient: linear-gradient(135deg, #3D1540 0%, #5B1F60 50%, #6A2C70 100%);
+    --header-text: #e8e0ec;
     --header-stat-bg: rgba(255,255,255,0.10);
-    --accent: #8e99f0;
-    --accent-hover: #7a86e0;
-    --accent-light: rgba(142,153,240,0.15);
-    --star-color: #fdd835;
-    --star-inactive: #4a4a6a;
-    --badge-bg: #3c3c5c;
-    --badge-text: #9aa0a6;
-    --rec-border: #fdd835;
+    --accent: #a070b0;
+    --accent-hover: #b080c0;
+    --accent-light: rgba(160,112,176,0.15);
+    --star-color: #D4A843;
+    --star-inactive: #483858;
+    --badge-bg: #3a2848;
+    --badge-text: #a890b0;
+    --rec-border: #B8963A;
     --toolbar-shadow: 0 1px 3px rgba(0,0,0,0.3);
     --card-border-left: transparent;
-    --input-focus-ring: rgba(142,153,240,0.18);
-    --accordion-border: #3c3c5c;
-    --empty-color: #6e7380;
+    --input-focus-ring: rgba(160,112,176,0.18);
+    --accordion-border: #3a2848;
+    --empty-color: #7a6880;
 }
 
 /* Auto-detect system preference (overridden by manual toggle) */
 @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-        --bg-primary: #1a1a2e;
-        --bg-secondary: #252540;
-        --bg-tertiary: #2a2a48;
-        --bg-recommended: #2d2a18;
-        --bg-hover: #303055;
-        --text-primary: #e8eaed;
-        --text-secondary: #9aa0a6;
-        --text-muted: #6e7380;
-        --link-color: #8ab4f8;
-        --border: #3c3c5c;
-        --border-light: #4a4a6a;
+        --bg-primary: #1a1220;
+        --bg-secondary: #221830;
+        --bg-tertiary: #281c36;
+        --bg-recommended: #2a2218;
+        --bg-hover: #2e2040;
+        --text-primary: #e8e0ec;
+        --text-secondary: #a890b0;
+        --text-muted: #7a6880;
+        --link-color: #c090d0;
+        --border: #3a2848;
+        --border-light: #483858;
         --shadow-sm: 0 1px 3px rgba(0,0,0,0.25);
         --shadow-md: 0 2px 8px rgba(0,0,0,0.35);
         --shadow-lg: 0 2px 12px rgba(0,0,0,0.40);
-        --header-gradient: linear-gradient(135deg, #4a54b8 0%, #5c3a7a 100%);
-        --header-text: #e8eaed;
+        --header-gradient: linear-gradient(135deg, #3D1540 0%, #5B1F60 50%, #6A2C70 100%);
+        --header-text: #e8e0ec;
         --header-stat-bg: rgba(255,255,255,0.10);
-        --accent: #8e99f0;
-        --accent-hover: #7a86e0;
-        --accent-light: rgba(142,153,240,0.15);
-        --star-color: #fdd835;
-        --star-inactive: #4a4a6a;
-        --badge-bg: #3c3c5c;
-        --badge-text: #9aa0a6;
-        --rec-border: #fdd835;
+        --accent: #a070b0;
+        --accent-hover: #b080c0;
+        --accent-light: rgba(160,112,176,0.15);
+        --star-color: #D4A843;
+        --star-inactive: #483858;
+        --badge-bg: #3a2848;
+        --badge-text: #a890b0;
+        --rec-border: #B8963A;
         --toolbar-shadow: 0 1px 3px rgba(0,0,0,0.3);
         --card-border-left: transparent;
-        --input-focus-ring: rgba(142,153,240,0.18);
-        --accordion-border: #3c3c5c;
-        --empty-color: #6e7380;
+        --input-focus-ring: rgba(160,112,176,0.18);
+        --accordion-border: #3a2848;
+        --empty-color: #7a6880;
     }
 }
 
@@ -450,6 +450,130 @@ body {
     }
 }
 
+/* === Recommended Grid === */
+.rec-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+@media (max-width: 768px) {
+    .rec-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.rec-grid .article-card {
+    flex-direction: column;
+    padding: 0;
+    margin-bottom: 0;
+    border-left: none;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow 0.25s, transform 0.25s;
+}
+
+.rec-grid .article-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.rec-grid .article-card.recommended {
+    border-color: var(--rec-border);
+    background: var(--bg-recommended);
+}
+
+.rec-grid .card-cover {
+    width: 100%;
+    height: 180px;
+    overflow: hidden;
+    background: var(--bg-tertiary);
+    position: relative;
+    flex-shrink: 0;
+}
+
+.rec-grid .card-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.3s ease;
+}
+
+.rec-grid .article-card:hover .card-cover img {
+    transform: scale(1.05);
+}
+
+.rec-grid .card-cover .cover-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--bg-tertiary) 100%);
+    font-size: 2.5rem;
+    color: rgba(255,255,255,0.5);
+}
+
+.rec-grid .star-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 2;
+    background: rgba(0,0,0,0.35);
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    line-height: 32px;
+    text-align: center;
+    color: #fff;
+    font-size: 1.1rem;
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+}
+
+.rec-grid .star-btn:hover {
+    background: rgba(0,0,0,0.55);
+    transform: scale(1.15);
+}
+
+.rec-grid .star-btn.starred {
+    color: var(--star-color);
+}
+
+.rec-grid .card-body {
+    padding: 14px 16px 16px;
+    flex: 1;
+    min-width: 0;
+}
+
+.rec-grid .card-title {
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-size: 0.92rem;
+    margin-bottom: 8px;
+}
+
+.rec-grid .card-meta {
+    font-size: 0.76rem;
+}
+
+/* Lazy loading fade-in */
+.rec-grid .card-cover img.lazy-loaded {
+    animation: fadeIn 0.35s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
 /* === Accordion === */
 .accordion {
     margin-bottom: 6px;
@@ -643,7 +767,8 @@ function renderRecommendations() {
     } else {
         section.style.display = "";
         badge.textContent = recs.length;
-        container.innerHTML = recs.map(a => renderCard(a)).join("");
+        container.innerHTML = recs.map(a => renderRecCard(a)).join("");
+        setupLazyLoading();
     }
 }
 
@@ -714,6 +839,72 @@ function renderCard(a, showStar) {
             ${kwTags ? `<div class="keyword-tags">${kwTags}</div>` : ""}
         </div>
     </div>`;
+}
+
+function renderRecCard(a) {
+    const starred = userStars[a.id] || a.recommended;
+    const dateStr = a.publish_time
+        ? new Date(a.publish_time * 1000).toLocaleDateString("zh-CN")
+        : "未知日期";
+    const keywords = (a.keywords || "").split("|").map(k => k.trim()).filter(Boolean);
+    const kwTags = keywords.map((kw, i) => {
+        const colorIdx = i % KW_COLORS_LEN;
+        return `<span class="keyword-tag" style="background:${KW_BG[colorIdx]};color:${KW_FG[colorIdx]}"
+              onclick="event.stopPropagation(); document.getElementById('search-input').value='${kw.replace(/'/g, "\\'")}'; onSearch();">${kw}</span>`;
+    }).join("");
+
+    const coverUrl = a.cover || "";
+    const coverHtml = coverUrl
+        ? `<img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3C/svg%3E"
+                  data-src="${htmlEscape(coverUrl)}"
+                  alt="${htmlEscape(a.title)}"
+                  class="lazy-cover"
+                  loading="lazy"
+                  onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+           <div class="cover-placeholder" style="display:none">📰</div>`
+        : `<div class="cover-placeholder">📰</div>`;
+
+    return `
+    <div class="article-card ${a.recommended ? "recommended" : ""}" data-id="${a.id}">
+        <div class="card-cover">
+            ${coverHtml}
+            <button class="star-btn ${starred ? "starred" : ""}"
+                onclick="event.stopPropagation(); toggleStar(${a.id}, this)"
+                title="标记为推荐">${starred ? "★" : "☆"}</button>
+        </div>
+        <div class="card-body">
+            <a class="card-title" href="${a.link || "#"}" target="_blank" rel="noopener"
+               title="${htmlEscape(a.title)}">${a.title}</a>
+            <div class="card-meta">
+                <span class="author-name">${a.author || "未知作者"}</span>
+                <span>${dateStr}</span>
+            </div>
+            ${kwTags ? `<div class="keyword-tags">${kwTags}</div>` : ""}
+        </div>
+    </div>`;
+}
+
+function setupLazyLoading() {
+    const images = document.querySelectorAll(".rec-grid .card-cover img[data-src]");
+    if ("IntersectionObserver" in window) {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const img = entry.target;
+                    img.src = img.getAttribute("data-src");
+                    img.removeAttribute("data-src");
+                    img.classList.add("lazy-loaded");
+                    observer.unobserve(img);
+                }
+            });
+        }, { rootMargin: "200px" });
+        images.forEach(img => observer.observe(img));
+    } else {
+        images.forEach(img => {
+            img.src = img.getAttribute("data-src");
+            img.removeAttribute("data-src");
+        });
+    }
 }
 
 function renderAccordion(author, items) {
@@ -903,7 +1094,7 @@ def _render_html(articles: list[dict], generated_at: str) -> str:
             <span class="icon">⭐</span> 推荐阅读
             <span class="badge" id="rec-count">0</span>
         </div>
-        <div id="recommendations"></div>
+        <div id="recommendations" class="rec-grid"></div>
     </div>
 
     <div class="section-title">

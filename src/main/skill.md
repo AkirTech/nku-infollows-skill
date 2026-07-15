@@ -59,7 +59,7 @@ python src/main/scripts/check_backend.py --start
 **Flags:**
 - `--start` — auto-start backend if not running (RECOMMENDED for normal use)
 - `--no-start` — only check status, never attempt startup (use when user wants manual control)
-- `--wait N` — max seconds to wait for startup (default 30)
+- `--wait N` — max seconds to wait for startup (default 120)
 
 **Exit codes:** 0 = healthy & authenticated, 1 = problem detected.
 
@@ -106,7 +106,7 @@ with open('src/main/scripts/temp/raw_articles.json', 'w', encoding='utf-8') as f
 "
 ```
 
-Collect only these fields per article: `id`, `title`, `link`, `author`, `publish_time`.
+Collect only these fields per article: `id`, `title`, `link`, `author`, `publish_time`, `cover`.
 
 **Rate limiting note:** `/api/feed/articles.json` reads from SQLite — it does NOT hit WeChat API rate limits. Safe to call without throttling.
 
@@ -134,13 +134,14 @@ Save the result as `articles_with_keywords.json` in `src/main/scripts/temp/`:
     "author": "南开大学",
     "keywords": "假期 | 重要通知 | 教务",
     "publish_time": 1720963200,
-    "recommended": true
+    "recommended": true,
+    "cover": "http://localhost:5000/api/image?url=..."
   }
 ]
 ```
 Use `Write` tool to save the file to the absolute path of `src/main/scripts/temp/articles_with_keywords.json`.
 
-Schema fields: `id` (int), `title` (string), `link` (string), `author` (string), `keywords` (string, pipe-separated), `publish_time` (int, unix timestamp), `recommended` (bool).
+Schema fields: `id` (int), `title` (string), `link` (string), `author` (string), `keywords` (string, pipe-separated), `publish_time` (int, unix timestamp), `recommended` (bool), `cover` (string, proxied image URL).
 
 > **⚠️ JSON Safety:** Avoid using curly/smart quotes (`""`, `''`) in titles — they can break JSON parsing. The `generate_html.py` script will automatically sanitize them by converting to corner brackets (`「」`), but it's best practice to use corner brackets in the JSON source as well.
 

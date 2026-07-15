@@ -38,6 +38,7 @@ from check_backend import (
     check_backend_auth,
     start_backend,
     wait_for_backend,
+    DEFAULT_WAIT_TIMEOUT,
 )
 
 CST = timezone(timedelta(hours=8))
@@ -66,7 +67,7 @@ def check_backend(auto_start: bool = True) -> dict | None:
     if not launched:
         return None
 
-    if not wait_for_backend(timeout=30):
+    if not wait_for_backend(timeout=DEFAULT_WAIT_TIMEOUT):
         return None
 
     # Re-check auth after successful startup
@@ -85,19 +86,70 @@ def get_subscriptions() -> list[dict]:
         return []
 
 
+def calculate_poll_timeout(num_subs: int) -> int:
+    """
+    Calculate poll timeout based on subscription count.
+    Backend polls subscriptions sequentially (~5-40s each with full content).
+    Formula: base_overhead + num_subs * per_sub_time, clamped to [30, 300].
+    """
+    BASE_OVERHEAD = 10
+    PER_SUB_TIME = 10
+    timeout = BASE_OVERHEAD + num_subs * PER_SUB_TIME
+    return max(30, min(300, timeout))
+
+
+def calculate_post_poll_wait(num_subs: int) -> int:
+    """
+    Calculate post-poll wait based on subscription count.
+    Backend has 3s inter-sub delay in _poll_all().
+    Formula: max(5, num_subs * 3), capped at 60s.
+    """
+    wait = num_subs * 3
+    return max(5, min(60, wait))
+
+
 # ─── Poll Trigger ────────────────────────────────────────────────
-def trigger_poll() -> bool:
-    """Trigger an article poll. Returns True on success."""
+def trigger_poll(num_subs: int) -> bool:
+    """Trigger an article poll. Uses dynamic timeout. Returns True on success."""
+    timeout = calculate_poll_timeout(num_subs)
+    print_info(f"订阅数: {num_subs}, 拉取超时: {timeout}s")
+
     try:
         req = urllib.request.Request(f"{BACKEND_URL}/api/rss/poll", method="POST")
-        with urllib.request.urlopen(req, timeout=30) as resp:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
             result = json.loads(resp.read().decode("utf-8"))
             message = result.get("data", {}).get("message", str(result))
             print_ok(f"拉取触发成功: {message}")
             return True
+    except TimeoutError:
+        print(f"  [WARN] 拉取超时 ({timeout}s)，检查后端轮询器状态...")
+        _wait_for_poller()
+        return False
     except Exception as e:
         print_err(f"触发拉取失败: {e}")
         return False
+
+
+def _wait_for_poller() -> None:
+    """Poll /api/rss/status until poller completes, up to 2 minutes."""
+    try:
+        with urllib.request.urlopen(f"{BACKEND_URL}/api/rss/status", timeout=5) as resp:
+            status = json.loads(resp.read().decode("utf-8"))
+            if status.get("data", {}).get("running", False):
+                print_info("轮询器仍在运行，等待完成 (最多 2 分钟)...")
+                for i in range(12):
+                    time.sleep(10)
+                    try:
+                        with urllib.request.urlopen(f"{BACKEND_URL}/api/rss/status", timeout=3) as cr:
+                            s2 = json.loads(cr.read().decode("utf-8"))
+                            if not s2.get("data", {}).get("running", False):
+                                print_ok("轮询已完成")
+                                return
+                    except Exception:
+                        pass
+                print_info("等待超时，将继续使用数据库现有文章")
+    except Exception:
+        pass
 
 
 # ─── Article Fetching ────────────────────────────────────────────
@@ -172,6 +224,7 @@ def save_raw_articles(articles: list[dict]) -> Path:
             "nickname": a.get("nickname", ""),
             "publish_time": a.get("publish_time", 0),
             "digest": a.get("digest", ""),
+            "cover": a.get("cover", ""),
         })
 
     with open(raw_file, "w", encoding="utf-8") as f:
@@ -236,9 +289,10 @@ def main() -> int:
         # ── Step 3: Trigger Poll ──
         if not args.no_poll:
             print_header("Step 3/5: 触发文章拉取")
-            trigger_poll()
-            print_info("等待 5 秒让后端完成拉取...")
-            time.sleep(5)
+            trigger_poll(len(subs))
+            wait_time = calculate_post_poll_wait(len(subs))
+            print_info(f"等待 {wait_time} 秒让后端完成拉取 (订阅数: {len(subs)})...")
+            time.sleep(wait_time)
         else:
             print_info("跳过拉取触发 (--no-poll)")
 
@@ -271,7 +325,8 @@ def main() -> int:
     │  4. 保存为 {ARTICLES_FILE}                               │
     │     格式: [{{"id":int, "title":str, "link":str,           │
     │             "author":str, "keywords":str,                 │
-    │             "publish_time":int, "recommended":bool}}]     │
+    │             "publish_time":int, "recommended":bool,       │
+    │             "cover":str}}]                                │
     │  5. 运行: python {Path(__file__).parent / 'generate_html.py'} │
     │  6. 打开浏览器查看推荐页面                                │
     │                                                          │
@@ -279,6 +334,7 @@ def main() -> int:
     │                                                          │
     └──────────────────────────────────────────────────────────┘
     """)
+
 
     # Summary stats
     authors = {}
