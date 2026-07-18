@@ -238,6 +238,9 @@ desktop.ini
 .claude/worktrees/
 .claude/settings.local.json
 
+# Local development guide (not for distribution)
+Instructions.md
+
 # Python virtualenv
 .venv/
 venv/
