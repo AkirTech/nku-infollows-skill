@@ -24,6 +24,9 @@ TEMP_DIR = SCRIPTS_DIR / "temp"
 ARTICLES_FILE = TEMP_DIR / "articles_with_keywords.json"
 STATE_FILE = TEMP_DIR / ".state.json"
 RECOMMENDATIONS_HTML = TEMP_DIR / "recommendations.html"
+LARK_TASKS_FILE = TEMP_DIR / "lark_tasks.json"
+LARK_MESSAGES_FILE = TEMP_DIR / "lark_messages_analysis.json"
+MODE_FILE = TEMP_DIR / ".mode.json"
 
 # --- Ensure temp directory exists ---
 TEMP_DIR.mkdir(parents=True, exist_ok=True)
